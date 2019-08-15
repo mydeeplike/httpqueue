@@ -166,7 +166,7 @@ func New(dbPath string, retrys int) *HttpQueue {
 	h.db.SetConnMaxLifetime(time.Second * 5) // 不使用的链接关闭掉，快速回收。
 	_, err = h.db.Exec(`
 		DROP TABLE IF EXISTS request;
-		CREATE TABLE request (
+		CREATE TABLE IF NOT EXISTS request (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			url TEXT NOT NULL default '',
 			method VARCHAR(255) NOT NULL default '',
@@ -179,7 +179,7 @@ func New(dbPath string, retrys int) *HttpQueue {
 			last_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);
 		DROP TABLE IF EXISTS request_success;
-		CREATE TABLE request_success (
+		CREATE TABLE IF NOT EXISTS request_success (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			url TEXT NOT NULL default '',
 			method VARCHAR(255) NOT NULL default '',
@@ -192,7 +192,7 @@ func New(dbPath string, retrys int) *HttpQueue {
 			last_date DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);
 		DROP TABLE IF EXISTS request_failed;
-		CREATE TABLE request_failed (
+		CREATE TABLE IF NOT EXISTS request_failed (
 			id INTEGER PRIMARY KEY AUTOINCREMENT,
 			url TEXT NOT NULL default '',
 			method VARCHAR(255) NOT NULL default '',
