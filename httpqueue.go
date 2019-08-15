@@ -71,6 +71,7 @@ type HttpQueue struct {
 	//headers     *Headers
 	contentType string
 	retrys int
+	retryDelay time.Duration
 }
 
 const (
@@ -151,11 +152,19 @@ func (h *HttpQueue) GET(url string, successStr string) error {
 	return err
 }
 
+func (h *HttpQueue) SetRetrys(retrys int) {
+	h.retrys = retrys
+}
+
+func (h *HttpQueue) SetRetryDelay(seconds int) {
+	h.retryDelay = time.Duration(seconds) * time.Second
+}
+
 // new 一个队列, retrys 重试次数，-1 为无穷多次。
-func New(dbPath string, retrys int) *HttpQueue {
+func New(dbPath string) *HttpQueue {
 	var err error
 	h := &HttpQueue{}
-	h.retrys = retrys
+	h.retrys = -1
 	h.db, err = dbx.Open("sqlite3", dbPath+"?cache=shared&mode=rwc&parseTime=true&charset=utf8")
 	if err != nil {
 		panic(err)
@@ -220,11 +229,11 @@ func New(dbPath string, retrys int) *HttpQueue {
 			n, err = h.db.Table("request").Count()
 			if err != nil {
 				log.Print(err)
-				time.Sleep(1 * time.Second)
+				time.Sleep(h.retryDelay)
 				continue
 			}
 			if n == 0 {
-				time.Sleep(1 * time.Second)
+				time.Sleep(h.retryDelay)
 				continue
 			}
 
@@ -272,7 +281,7 @@ func New(dbPath string, retrys int) *HttpQueue {
 
 			}
 			End:
-			time.Sleep(1 * time.Second)
+			time.Sleep(h.retryDelay)
 		}
 	}()
 
